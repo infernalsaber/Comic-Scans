@@ -74,10 +74,14 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Comic Scans OCR")
     parser.add_argument('-i', type=str, help='URL of the manga')
     parser.add_argument('-m', type=str, help='OCR model to use')
+    parser.add_argument('--no_cubari', action='store_true', help='Do not use Cubari API')
     args = parser.parse_args()
 
     url = args.i if args.i else input("Enter the URL of the manga: ")
     model = args.m if args.m else "surya"    
-    url = cubari_apify(url.strip())
+    if args.no_cubari:
+        url = url.strip()
+    else:
+        url = cubari_apify(url.strip())
     
     main(url, model=model)

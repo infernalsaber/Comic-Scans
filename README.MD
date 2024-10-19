@@ -1,9 +1,11 @@
 # Comic Scans
 
+<center>
 A project to index a manga and make the entirety of its text searchable.
-
-![example-mayonaka-heart-tune](mayonaka.png)
-
+<br>
+<img src="mayonaka.png" alt="example-mayonaka-heart-tune" width="300"/>
+<p><em>Sauce: Mayonaka Heart Tune</em></p>
+</center> <br>
 
 This project is powered by [cubari.moe](https://cubari.moe) for the images.
 The OCR modes can be chosen between [Surya OCR](https://github.com/VikParuchuri/surya)/[EasyOCR](https://github.com/JaidedAI/EasyOCR) (default: surya)

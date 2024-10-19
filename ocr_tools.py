@@ -1,7 +1,5 @@
 """To add functions for OCRing text from images"""
-
 import re
-
 
 def ocr_image(img: bytes, model = "surya") -> str:
     if model == "easyocr":
@@ -13,8 +11,9 @@ def ocr_image(img: bytes, model = "surya") -> str:
     else:
         raise NotImplementedError("Model not implemented yet")
     
-    text = re.sub(r'[^A-Za-z0-9\s]+', '', text)  # Remove special characters
-    text = re.sub(r'\s+', ' ', text).strip()  # Remove extra spaces
+    # Clean up the text a bit
+    text = re.sub(r'[^A-Za-z0-9\s]+', '', text) 
+    text = re.sub(r'\s+', ' ', text).strip()
     return text
     
 def cubari_apify(link: str) -> tuple:
