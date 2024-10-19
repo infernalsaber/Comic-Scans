@@ -4,16 +4,13 @@ from requests_cache import CachedSession
 from tqdm import tqdm
 from collections import defaultdict
 import json
-import argparse
 import os
 from natsort import natsorted
-
-print("Loading OCR model...")
-import easyocr
-reader = easyocr.Reader(['en'])
+from ocr_tools import ocr_image, cubari_apify
 
 
-def main(url):
+
+def main(url, model="surya"):
         
     session = CachedSession(cache_name='cache', backend='sqlite')
     session.headers.update({"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"})
@@ -29,7 +26,7 @@ def main(url):
 
     else:
         a = defaultdict(dict)
-    if not 'init_timestamp' in a.keys():
+    if 'init_timestamp' not in a.keys():
         a['init_timestamp'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
     num_chapters = len(resp['chapters'])
@@ -43,24 +40,18 @@ def main(url):
         if isinstance(pages, list): # Guya
             for i, page in tqdm(enumerate(pages, start=1)):
                 img = session.get(page).content
-                result = reader.readtext(img)
-                pg_text = " ".join([x[1] for x in result])
-                a['chapters'][chapter][i] = pg_text
+                a['chapters'][chapter][i] = ocr_image(img)
         else: 
             chapter_dets = session.get(f"https://cubari.moe{pages}").json()
             if isinstance(chapter_dets[0], dict): # Imgur
                 for i, page in tqdm(enumerate(chapter_dets, start=1)):
                     img = session.get(page['src']).content
-                    result = reader.readtext(img)
-                    pg_text = " ".join([x[1] for x in result])
-                    a['chapters'][chapter][i] = pg_text
+                    a['chapters'][chapter][i] = ocr_image(img, model=model)
             else:
                 # Mangadex, Mangasee etc.
                 for i, page in tqdm(enumerate(chapter_dets, start=1)):
                     img = session.get(page).content
-                    result = reader.readtext(img)
-                    pg_text = " ".join([x[1] for x in result])
-                    a['chapters'][chapter][i] = pg_text
+                    a['chapters'][chapter][i] = ocr_image(img)
                 
 
         # Sort the chapter numbers
@@ -77,5 +68,6 @@ def main(url):
     print("Finished scanning the chapters")
         
 if __name__ == "__main__":
-    url = "https://cubari.moe/read/api/mangadex/series/ea3fc681-51fd-44d9-a83d-297c4c28e11b/"
+    url = input("Enter the URL of the manga: ").strip()
+    url = cubari_apify(url)
     main(url)
