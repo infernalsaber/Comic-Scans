@@ -3,7 +3,6 @@
 import re
 
 
-
 def ocr_image(img: bytes, model = "surya") -> str:
     if model == "easyocr":
         from models.run_easyocr import easy_ocr

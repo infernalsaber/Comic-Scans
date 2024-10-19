@@ -1,16 +1,17 @@
+import argparse
 import datetime
-from requests_cache import CachedSession
-
-from tqdm import tqdm
-from collections import defaultdict
 import json
 import os
+from collections import defaultdict
+
 from natsort import natsorted
-from ocr_tools import ocr_image, cubari_apify
+from requests_cache import CachedSession
+from tqdm import tqdm
+
+from ocr_tools import cubari_apify, ocr_image
 
 
-
-def main(url, model="surya"):
+def main(url):
         
     session = CachedSession(cache_name='cache', backend='sqlite')
     session.headers.update({"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"})
@@ -67,7 +68,16 @@ def main(url, model="surya"):
         
     print("Finished scanning the chapters")
         
+
 if __name__ == "__main__":
-    url = input("Enter the URL of the manga: ").strip()
-    url = cubari_apify(url)
-    main(url)
+
+    parser = argparse.ArgumentParser(description="Comic Scans OCR")
+    parser.add_argument('-i', type=str, help='URL of the manga')
+    parser.add_argument('-m', type=str, help='OCR model to use')
+    args = parser.parse_args()
+
+    url = args.i if args.i else input("Enter the URL of the manga: ")
+    model = args.m if args.m else "surya"    
+    url = cubari_apify(url.strip())
+    
+    main(url, model=model)
