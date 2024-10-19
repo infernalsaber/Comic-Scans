@@ -11,7 +11,7 @@ from tqdm import tqdm
 from ocr_tools import cubari_apify, ocr_image
 
 
-def main(url):
+def main(url, model):
         
     session = CachedSession(cache_name='cache', backend='sqlite')
     session.headers.update({"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"})
@@ -19,7 +19,7 @@ def main(url):
     response = session.get(url)
     resp = response.json()
     
-    json_title = f"./downloads/{resp['title']}_text.json"
+    json_title = f"./downloads/{resp['title']}_text_{model}.json"
     
     if os.path.exists(json_title):
         with open(json_title, "r", encoding="utf-8") as f:
