@@ -5,7 +5,10 @@ from surya.model.recognition.model import load_model as load_rec_model
 from surya.model.recognition.processor import load_processor as load_rec_processor
 import requests
 from io import BytesIO
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
 
 link = "https://i.imgur.com/Kv9uyxE.jpg"
 user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.3029.110 Safari/537.3"
@@ -20,8 +23,9 @@ rec_model, rec_processor = load_rec_model(), load_rec_processor()
 
 predictions = run_ocr([image], [langs], det_model, det_processor, rec_model, rec_processor)
 
-bboxes = [bbox.bbox for bbox in predictions[0].text_lines]
-texts = [bbox.text for bbox in predictions[0].text_lines]
+CONFIDENCE_THRESHOLD = os.getenv("CONFIDENCE_THRESHOLD", 0.91)
+bboxes = [bbox.bbox for bbox in predictions[0].text_lines if bbox.confidence > CONFIDENCE_THRESHOLD]
+texts = [bbox.text for bbox in predictions[0].text_lines if bbox.confidence > CONFIDENCE_THRESHOLD]
 
 draw = ImageDraw.Draw(image)
 

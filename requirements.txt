@@ -1,3 +1,5 @@
 requests-cache
 natsort
 tqdm
+pillow
+python-dotenv

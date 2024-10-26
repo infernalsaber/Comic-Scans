@@ -17,7 +17,7 @@ def ocr_image(img: bytes, model = "surya") -> str:
     return text
     
 def cubari_apify(link: str) -> tuple:
-    combined_regex = re.compile(r"https://(mangadex)\.org/title/([a-f0-9\-]+)/|https://(imgur)\.com/a/([a-zA-Z0-9]+)|https://(nhentai)\.net/g/([0-9]+)")
+    combined_regex = re.compile(r"https://(mangadex)\.org/title/([a-f0-9\-]+)|https://(imgur)\.com/a/([a-zA-Z0-9]+)|https://(nhentai)\.net/g/([0-9]+)")
     match = combined_regex.match(link)
     if not match:
         raise ValueError("Invalid link")
