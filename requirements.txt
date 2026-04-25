@@ -1,5 +1,8 @@
-requests-cache
+requests
 natsort
 tqdm
-pillow
-python-dotenv
+pillow==12.2.0
+accelerate==1.13.0
+torch==2.6.0+cu124
+torchvision==0.21.0+cu124
+transformers
