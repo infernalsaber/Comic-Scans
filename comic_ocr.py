@@ -87,7 +87,7 @@ def glm_ocr(image: Image.Image) -> str:
     ).strip()
 
 
-def process_series(url, chapters_filter=None, force=False):
+def process_series(url=None, chapters_filter=None, force=False, data=None):
     session = requests.Session()
     session.headers.update({
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -95,8 +95,12 @@ def process_series(url, chapters_filter=None, force=False):
                       "Chrome/123.0.0.0 Safari/537.36"
     })
 
-    resp = session.get(url)
-    resp = resp.json()
+    if data is not None:
+        resp = data
+        source = url or "<local file>"
+    else:
+        resp = session.get(url).json()
+        source = url
 
     os.makedirs("scans", exist_ok=True)
     json_path = f"./scans/{resp['title']}.json"
@@ -106,10 +110,10 @@ def process_series(url, chapters_filter=None, force=False):
             a = json.load(f)
         a.setdefault("chapters", {})
     else:
-        a = {"timestamp": "", "chapters": {}, "source": url}
+        a = {"timestamp": "", "chapters": {}, "source": source}
 
     a["timestamp"] = datetime.datetime.now(datetime.timezone.utc).isoformat()
-    a["source"] = url
+    a["source"] = source
 
     all_chapters = sorted([eval(ch) for ch in resp["chapters"].keys()])
     if chapters_filter:
@@ -159,29 +163,44 @@ def process_series(url, chapters_filter=None, force=False):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Comic Scans OCR")
-    parser.add_argument("-i", "--input", type=str, help="Cubari URL of the manga")
+    source_group = parser.add_mutually_exclusive_group()
+    source_group.add_argument("-i", "--input", type=str, help="Cubari URL of the manga")
+    source_group.add_argument("--file", type=str, metavar="PATH",
+                              help="Path to a local cubari-compatible JSON file")
     parser.add_argument("--chapters", type=str, nargs="+",
                         help="Only OCR these chapter numbers (e.g. --chapters 1 2 5)")
     parser.add_argument("-f", "--force", action="store_true",
                         help="Force re-OCR of chapters already in the output JSON")
     args = parser.parse_args()
 
-    url = args.input if args.input else input("Enter the URL of the manga: ")
-    url = url.strip()
+    if args.file:
+        file_path = os.path.abspath(args.file)
+        if not os.path.isfile(file_path):
+            logger.error(f"File not found: {file_path}")
+            sys.exit(1)
+        with open(file_path, "r", encoding="utf-8") as f:
+            local_data = json.load(f)
+        if "title" not in local_data or "chapters" not in local_data:
+            logger.error("JSON does not look like a cubari series (missing 'title' or 'chapters')")
+            sys.exit(1)
+        logger.info(f"Loaded local file: {file_path} — series: {local_data['title']}")
+        process_series(url=file_path, chapters_filter=args.chapters, force=args.force, data=local_data)
+    else:
+        url = args.input if args.input else input("Enter the URL of the manga: ")
+        url = url.strip()
 
-    if not url:
-        logger.error("No URL provided")
-        sys.exit(1)
+        if not url:
+            logger.error("No URL provided")
+            sys.exit(1)
 
-    parsed = urlparse(url)
-    if parsed.scheme not in ("http", "https") or not parsed.netloc:
-        logger.error(f"'{url}' is not a valid URL")
-        sys.exit(1)
+        parsed = urlparse(url)
+        if parsed.scheme not in ("http", "https") or not parsed.netloc:
+            logger.error(f"'{url}' is not a valid URL")
+            sys.exit(1)
 
-    if not url.startswith("https://cubari.moe"):
-        logger.error(f"Not a cubari url: {url}")
-        sys.exit(1)
+        if not url.startswith("https://cubari.moe"):
+            logger.error(f"Not a cubari url: {url}")
+            sys.exit(1)
 
-    url = cubari_to_api(url)
-
-    process_series(url, chapters_filter=args.chapters, force=args.force)
+        url = cubari_to_api(url)
+        process_series(url, chapters_filter=args.chapters, force=args.force)
