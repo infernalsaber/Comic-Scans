@@ -11,6 +11,7 @@ from logging.handlers import RotatingFileHandler
 from urllib.parse import urlparse
 
 import requests
+from requests_file import FileAdapter
 from natsort import natsorted
 from PIL import Image
 from tqdm import tqdm
@@ -89,6 +90,7 @@ def glm_ocr(image: Image.Image) -> str:
 
 def process_series(url=None, chapters_filter=None, force=False, data=None):
     session = requests.Session()
+    session.mount("file://", FileAdapter())
     session.headers.update({
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                       "AppleWebKit/537.36 (KHTML, like Gecko) "
